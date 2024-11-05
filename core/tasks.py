@@ -4,7 +4,6 @@ from langchain_core.prompts import PromptTemplate
 from langchain_community.tools import DuckDuckGoSearchRun
 from langchain.agents import initialize_agent, AgentType
 from langchain_openai import ChatOpenAI
-import os
 
 search = DuckDuckGoSearchRun()
 

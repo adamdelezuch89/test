@@ -6,4 +6,3 @@ django-celery-results
 requests
 openai
 crewai
-duckduckgo-search

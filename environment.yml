@@ -1,0 +1,18 @@
+name: test-app
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  - pip
+  - postgresql=17.0
+  - rabbitmq-server
+  - django
+  - pip:
+    - psycopg2-binary
+    - python-dotenv
+    - celery
+    - django-celery-results
+    - requests
+    - openai
+    - crewai

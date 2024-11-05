@@ -40,7 +40,7 @@ services:
 
   celery:
     build: .
-    command: celery -A app worker -l INFO
+    command: celery -A app worker -l INFO -c 1
     volumes:
       - .:/app
     env_file:

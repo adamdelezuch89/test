@@ -1,12 +1,9 @@
 Django
-psycopg2-binary # Replace with non binary
+psycopg2-binary # TODO: Replace with non binary
 python-dotenv
 celery
-langchain
 django-celery-results
-langchain-community
 requests
-langchain-core
-duckduckgo-search
 openai
-langchain-openai
+crewai
+duckduckgo-search

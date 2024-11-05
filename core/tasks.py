@@ -1,16 +1,7 @@
 from celery import shared_task
 from django.utils import timezone
-from langchain_core.prompts import PromptTemplate
-from langchain_community.tools import DuckDuckGoSearchRun
-from langchain.agents import initialize_agent, AgentType
-from langchain_openai import ChatOpenAI
-
-search = DuckDuckGoSearchRun()
-
-# Definiujemy template dla prompta
-PROMPT_TEMPLATE = """
-Znajdź odpowiedź w sieci na pytanie użytkownika  {task_prompt}
-"""
+from crewai import Agent, Task as CrewTask, Crew, LLM
+from crewai_tools import SerperDevTool
 
 
 @shared_task
@@ -18,33 +9,41 @@ def run_agent_task(task_id):
     from .models import Task, Run
 
     start_time = timezone.now()
-
     try:
         task = Task.objects.get(id=task_id)
+        llm = LLM(model="gpt-3.5-turbo", temperature=0.7)
 
-        # Inicjalizacja modelu językowego
-        llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo")
+        search_tool = SerperDevTool()
 
-        # Inicjalizacja agenta
-        agent = initialize_agent(
-            tools=[search],
+        researcher = Agent(
+            role="Researcher",
+            goal="Find accurate and up-to-date information from the internet",
+            backstory="""You are an expert researcher with a knack for finding
+            accurate information online and summarizing it concisely.""",
+            allow_delegation=False,
             llm=llm,
-            agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-            verbose=True,
+            tools=[search_tool],
         )
 
-        # Przygotowanie prompta
-        prompt = PromptTemplate.from_template(PROMPT_TEMPLATE)
-        final_prompt = prompt.format(task_prompt=task.task_prompt)
+        # Tworzymy zadanie dla agenta
+        research_task = CrewTask(
+            description=f"Search the internet for: {task.task_prompt}. "
+            f"Provide a clear and concise answer based on the search results.",
+            expected_output="A clear and concise answer to the query, based on current information found online.",
+            agent=researcher,
+        )
 
-        # Uruchomienie agenta i otrzymanie odpowiedzi
-        response = agent.run(final_prompt)
+        # Tworzymy crew i uruchamiamy zadanie
+        crew = Crew(agents=[researcher], tasks=[research_task])
 
-        # Zapisanie odpowiedzi
-        task.task_output = response
+        # Uruchamiamy crew i otrzymujemy wynik
+        result = crew.kickoff()
+
+        # Zapisujemy wynik
+        task.task_output = result
         task.save()
 
-        # Zapisanie informacji o uruchomieniu
+        # Zapisujemy informacje o uruchomieniu
         execution_time = (timezone.now() - start_time).total_seconds()
         Run.objects.create(task=task, execution_time=execution_time)
 

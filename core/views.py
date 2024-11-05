@@ -24,8 +24,6 @@ class TaskCreateView(CreateView):
 
 
 def run_agent(request, task_id):
-    task = get_object_or_404(Task, id=task_id)
-    # Uruchomienie taska Celery
     run_agent_task.delay(task_id)
     messages.success(request, "Agent został uruchomiony w tle.")
     return redirect("task-list")

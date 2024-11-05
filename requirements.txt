@@ -4,3 +4,9 @@ python-dotenv
 celery
 langchain
 django-celery-results
+langchain-community
+requests
+langchain-core
+duckduckgo-search
+openai
+langchain-openai
